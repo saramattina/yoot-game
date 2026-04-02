@@ -105,6 +105,8 @@ const init = () => {
   removeFlatClass(stickFour);
 };
 
+
+
 const rollSticks = (e) => {
   const randomNum = Math.random();
   if (randomNum < 0.5) {
