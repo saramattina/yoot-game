@@ -69,10 +69,6 @@ h3 {
   background-color: #8bc47f;
 }
 
-.final-sqr {
-  background-color: #e78e71;
-}
-
 .sticks {
   display: flex;
   width: 200px;
@@ -120,42 +116,6 @@ button:hover {
   font-size: 1.25rem;
   text-align: center;
 }
-
-/* .left-side,
-.right-side {
-  display: flex;
-  gap: 10px;
-  flex-direction: column;
-}
-
-.top-side,
-.bottom-side {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.top-side {
-  transform: translate(0, -128px);
-}
-
-.bottom-side {
-  margin-top: 533px;
-  transform: translate(-317px, -245px);
-  flex-direction: row-reverse;
-}
-
-.right-side {
-  margin-top: 268px;
-  transform: translate(0, -268px);
-}
-
-.left-side {
-  margin-top: 321px;
-  transform: translate(-581px, -65px);
-  display: flex;
-  flex-direction: column-reverse;
-} */
 
 .roll {
   width: 140px;

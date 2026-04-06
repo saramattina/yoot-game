@@ -34,7 +34,7 @@ let oldPieceIdx;
 let squareElsArray;
 let spacesToMove;
 
-const squareEls = document.querySelectorAll(".sqr");
+const squareEls = document.querySelectorAll(".cell");
 const turnMessageEl = document.querySelector(".turn-message");
 const rollMessageEl = document.querySelector(".roll-message");
 const playerRedScore = document.querySelector("#player-red-score");
@@ -60,7 +60,42 @@ const playerBlue = "🔵";
 const turnMessage = () => `It's ${currentPlayer}'s turn!`;
 const winMessage = `${currentPlayer} has won!`;
 
-//functions
+const normalPath = {
+  0: 1,
+  1: 2,
+  2: 3,
+  3: 4,
+  4: 5, // Top row
+  5: 6,
+  6: 7,
+  7: 8,
+  8: 9,
+  9: 10, // Right column
+  10: 11,
+  11: 12,
+  12: 13,
+  13: 14,
+  14: 15, // Bottom row
+  15: 16,
+  16: 17,
+  17: 18,
+  18: 19,
+  19: 29, // Left column (>29 means piece is moved off the board and that player gets +1 score)
+};
+
+const shortcuts = {
+  5: 20, // Top-right corner sends you diagonal-down
+  10: 25, // Bottom-right corner sends you diagonal-up
+  22: 27, // The center square sends you toward the bottom-left
+};
+
+const backwardsPath = {
+  0: 19, // From start, go back to the last square
+  20: 5, // From the first diagonal square, go back to the corner
+  25: 10, // From the second diagonal corner, go back to that corner
+};
+
+// FUNCTIONS
 
 const init = () => {
   board = [
@@ -84,9 +119,18 @@ const init = () => {
     "",
     "",
     "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
   ];
 
-  squareEls.forEach((sqr) => (sqr.textContent = ""));
+  squareEls.forEach((cell) => (cell.textContent = ""));
   winner = false;
   rollAgain = false;
   currentPlayer = "🔴";
@@ -105,7 +149,20 @@ const init = () => {
   removeFlatClass(stickFour);
 };
 
-
+const handleWin = () => {
+  winner = true;
+  turnMessageEl.textContent = `${currentPlayer} has scored and won!`;
+  rollBtn.disabled = true;
+  resetBtn.textContent = "Play again?";
+  
+  if (currentPlayer === "🔴") {
+    redScore++;
+    playerRedScore.textContent = `🔴: ${redScore}`;
+  } else {
+    blueScore++;
+    playerBlueScore.textContent = `🔵: ${blueScore}`;
+  }
+};
 
 const rollSticks = (e) => {
   const randomNum = Math.random();
@@ -121,47 +178,71 @@ const removeFlatClass = (e) => {
   e.classList.remove("flat");
 };
 
-const updateBoard = () => {
-  if (oldPieceIdx.textContent !== "") {
-    board[oldPieceIdx] = "";
+const getNextIdx = (currentIdx, isStartingTurn) => {
+  // check if player piece is on corner or center square at start of turn, can take shortcut
+  if (isStartingTurn && shortcuts[currentIdx]) {
+    return shortcuts[currentIdx];
   }
-  board.forEach((sqr, idx) => {
-    squareEls[idx].textContent = sqr;
+
+  return normalPath[currentIdx];
+};
+
+const updateBoard = () => {
+  // if (oldPieceIdx.textContent !== "") {
+  //   board[oldPieceIdx] = "";
+  // }
+  // board.forEach((cell, idx) => {
+  //   squareEls[idx].textContent = cell;
+  // });
+
+  board.forEach((cellValue, idx) => {
+    squareEls[idx].textContent = "";
+    if (cellValue !== "") {
+      squareEls[idx].textContent = cellValue;
+    }
   });
+};
+
+const updateState = (oldIdx, newIdx) => {
+  if (oldIdx !== -1) board[oldIdx] = "";
+  board[newIdx] = currentPlayer;         
+  updateBoard();                         
 };
 
 const placePiece = () => {
   squareElsArray = Array.from(squareEls);
-  oldPieceIdx = squareElsArray.findIndex(
-    (squareEl) => squareEl.textContent === currentPlayer
-  );
+  let currentPos = board.findIndex((val) => val === currentPlayer);
+  let newPos = currentPos;
 
-  newPieceIdx = oldPieceIdx + spacesToMove;
-
-  //check for winner
-  if (newPieceIdx > board.length - 1) {
-    winner = true;
-    turnMessageEl.textContent = `${currentPlayer} has won!`;
-    rollMessageEl.textContent = "";
-    rollBtn.disabled = true;
-    resetBtn.textContent = "Play again?";
-    if (currentPlayer === "🔴") {
-      redScore = 1;
-      playerRedScore.textContent = `🔴: ${redScore}`;
-      return;
-    } else {
-      blueScore = 1;
-      playerBlueScore.textContent = `🔵: ${blueScore}`;
-      return;
+  // if piece is not on board, start at index 0
+  if (currentPos === -1) {
+    if (spacesToMove === -1) return; // can't move backwards if not on board
+    newPos = 0;
+    for (let i = 0; i < spacesToMove - 1; i++) {
+      newPos = getNextIdx(newPos, false);
     }
-  } else if (newPieceIdx === -1 && oldPieceIdx === 0) {
-    //check for if player has piece on board[0] and rolls back do 
-    board[19] = currentPlayer;
-    return;
+    updateState(-1, newPos);
+  } else if (spacesToMove === -1) {
+    if (backwardsPath[currentPos] !== undefined) {
+      newPos = backwardsPath[currentPos];
+    } else {
+      newPos = currentPos - 1;
+    }
+    updateState(currentPos, newPos);
   } else {
-    board[newPieceIdx] = currentPlayer;
-    return;
-  }
+    for (let i = 0; i < spacesToMove; i++) {
+      const isFirstStep = (i === 0);
+      newPos = getNextIdx(newPos, isFirstStep);
+
+      if (newPos === undefined || newPos >= 29) {
+        handleWin();
+        board[currentPos] = "";
+        updateBoard();
+        return;
+      }
+    }
+    updateState(currentPos, newPos);
+  };
 };
 
 //If player rolls a yut or mo, player will roll again
@@ -177,9 +258,8 @@ const switchPlayerTurn = () => {
   currentPlayer = currentPlayer === "🔴" ? "🔵" : "🔴";
   turnMessageEl.innerText = turnMessage();
 };
-//^partially taken from the tic tac toe lab
 
-//event listeners
+// EVENT LISTENERS
 
 rollBtn.addEventListener("click", () => {
   //reset the stick for the roll
