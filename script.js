@@ -85,9 +85,10 @@ const normalPath = {
   20: 29,
   21: 20,
   22: 27,
-  23: 22, 
+  23: 22,
+  22: 21,
   24: 23,
-  25: 26, 
+  25: 26,
   26: 22,
   27: 28,
   28: 15,
@@ -101,11 +102,11 @@ const shortcuts = {
 };
 
 const backwardsPath = {
-  0: 30, // From start, go back to the last square
+  0: 19, // From start, go back to the last square
+  22: 23, // from center, go back to bottom right diagonal
   24: 10, // From the bottom right diagonal, go back bottom right corner
   25: 5, // From the top right diagonal cell, go back to top right corner
   27: 22, // From the bottom left diagonal, go back to the center
-  22 : 23 // from center, go back to bottom right diagonal
 };
 
 // FUNCTIONS
@@ -167,7 +168,7 @@ const handleWin = () => {
   turnMessageEl.textContent = `${currentPlayer} has scored and won!`;
   rollBtn.disabled = true;
   resetBtn.textContent = "Play again?";
-  
+
   if (currentPlayer === "🔴") {
     redScore++;
     playerRedScore.textContent = `🔴: ${redScore}`;
@@ -204,7 +205,7 @@ const updateBoard = () => {
   squareEls.forEach((cell) => (cell.textContent = ""));
 
   board.forEach((cellValue, idx) => {
-    let visualIdx = idx === 30 ? 0 : idx;
+    let visualIdx = idx === 29 ? 0 : idx;
     if (cellValue !== "") {
       squareEls[visualIdx].textContent = cellValue;
     }
@@ -213,8 +214,8 @@ const updateBoard = () => {
 
 const updateState = (oldIdx, newIdx) => {
   if (oldIdx !== -1) board[oldIdx] = "";
-  board[newIdx] = currentPlayer;         
-  updateBoard();                         
+  board[newIdx] = currentPlayer;
+  updateBoard();
 };
 
 const placePiece = () => {
@@ -239,7 +240,7 @@ const placePiece = () => {
     updateState(currentPos, newPos);
   } else {
     for (let i = 0; i < spacesToMove; i++) {
-      const isFirstStep = (i === 0);
+      const isFirstStep = i === 0;
       newPos = getNextIdx(newPos, isFirstStep);
 
       if (newPos === undefined || newPos > 30) {
@@ -250,7 +251,7 @@ const placePiece = () => {
       }
     }
     updateState(currentPos, newPos);
-  };
+  }
 };
 
 const getNextIndex = (currentIndex, isStartingTurn) => {
@@ -261,7 +262,7 @@ const getNextIndex = (currentIndex, isStartingTurn) => {
 
   // 2. Otherwise, follow the standard flow
   // You'll need to define the rest of the diagonal connections in your map
-  return normalPath[currentIndex]; 
+  return normalPath[currentIndex];
 };
 
 const handleRollAgain = () => {
