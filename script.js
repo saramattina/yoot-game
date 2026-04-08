@@ -81,18 +81,31 @@ const normalPath = {
   17: 18,
   18: 19,
   19: 29, // Left column (>29 means piece is moved off the board and that player gets +1 score)
+  // diagonals
+  20: 29,
+  21: 20,
+  22: 27,
+  23: 22, 
+  24: 23,
+  25: 26, 
+  26: 22,
+  27: 28,
+  28: 15,
+  29: 30,
 };
 
 const shortcuts = {
-  5: 20, // Top-right corner sends you diagonal-down
-  10: 25, // Bottom-right corner sends you diagonal-up
-  22: 27, // The center square sends you toward the bottom-left
+  5: 25, // Top-right corner sends you diagonal-down
+  10: 24, // Bottom-right corner sends you diagonal-up
+  22: 21, // The center square sends you toward the bottom-left
 };
 
 const backwardsPath = {
-  0: 19, // From start, go back to the last square
-  20: 5, // From the first diagonal square, go back to the corner
-  25: 10, // From the second diagonal corner, go back to that corner
+  0: 30, // From start, go back to the last square
+  24: 10, // From the bottom right diagonal, go back bottom right corner
+  25: 5, // From the top right diagonal cell, go back to top right corner
+  27: 22, // From the bottom left diagonal, go back to the center
+  22 : 23 // from center, go back to bottom right diagonal
 };
 
 // FUNCTIONS
@@ -188,17 +201,12 @@ const getNextIdx = (currentIdx, isStartingTurn) => {
 };
 
 const updateBoard = () => {
-  // if (oldPieceIdx.textContent !== "") {
-  //   board[oldPieceIdx] = "";
-  // }
-  // board.forEach((cell, idx) => {
-  //   squareEls[idx].textContent = cell;
-  // });
+  squareEls.forEach((cell) => (cell.textContent = ""));
 
   board.forEach((cellValue, idx) => {
-    squareEls[idx].textContent = "";
+    let visualIdx = idx === 30 ? 0 : idx;
     if (cellValue !== "") {
-      squareEls[idx].textContent = cellValue;
+      squareEls[visualIdx].textContent = cellValue;
     }
   });
 };
@@ -234,7 +242,7 @@ const placePiece = () => {
       const isFirstStep = (i === 0);
       newPos = getNextIdx(newPos, isFirstStep);
 
-      if (newPos === undefined || newPos >= 29) {
+      if (newPos === undefined || newPos > 30) {
         handleWin();
         board[currentPos] = "";
         updateBoard();
@@ -245,7 +253,17 @@ const placePiece = () => {
   };
 };
 
-//If player rolls a yut or mo, player will roll again
+const getNextIndex = (currentIndex, isStartingTurn) => {
+  // 1. If we are at a corner AT THE START of a move, take the shortcut
+  if (isStartingTurn && shortcuts[currentIndex]) {
+    return shortcuts[currentIndex];
+  }
+
+  // 2. Otherwise, follow the standard flow
+  // You'll need to define the rest of the diagonal connections in your map
+  return normalPath[currentIndex]; 
+};
+
 const handleRollAgain = () => {
   if (numFlatSticks.length === 0 || numFlatSticks.length === 4) {
     rollAgain = true;

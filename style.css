@@ -57,7 +57,8 @@ h3 {
   grid-area: var(--pos);
   width: 35px;
   height: 35px;
-  background: white;
+  background: whitesmoke;
+  color: black;
   border: 2px solid #4a3728;
   border-radius: 50%;
   align-self: center;
